@@ -17,14 +17,8 @@ public class Main {
         AgentController Agent1;
         AgentController Agent2;
 
-        Order[] orders =  {
-                new Order("jacket",12.5, 100),
-                new Order("phone",850, 12)
-        };
-
-
         try {
-            Agent2 = container.createNewAgent("ClientAgent", "com.AI.ClientAgent",orders );
+            Agent2 = container.createNewAgent("ClientAgent", "com.AI.ClientAgent",null );
 
             Agent2.start();
 

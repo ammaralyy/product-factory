@@ -6,6 +6,8 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Scanner;
+
 public class FactoryAgent extends Agent {
 
     Product[] products = {
@@ -37,8 +39,20 @@ public class FactoryAgent extends Agent {
                         System.out.println("new order from: " + localID);
                         System.out.println(msg.getContent());
                         sendProductList();
+
+                        Scanner updated = new Scanner(System.in);
+                        System.out.println("Enter 1 to update or 0 to skip");
+                        String updated_state = updated.nextLine();
+
+                        if(updated_state.equals("1")){
+                            update();
+                        }else if(updated_state.equals("0")){
+                            receiveBehave();
+                        }
                     } else if (msg.getContent().equals("bad") || msg.getContent().equals("good")){
                         receiveMoneyState(msg.getContent());
+                    }else if(msg.getContent().substring(0,9).equals("product: ")){
+                        System.out.println(msg.getContent());
                     }
                 }
             }
@@ -90,5 +104,19 @@ public class FactoryAgent extends Agent {
         }
     }
 
+    void update(){
+
+        Scanner updated = new Scanner(System.in);
+        System.out.println("Enter updated product");
+        String updated_product = updated.nextLine();
+
+        ACLMessage state = new ACLMessage(ACLMessage.REQUEST);
+
+        state.addReceiver(new AID("ClientAgent", AID.ISLOCALNAME));
+
+        state.setContent("updated " + updated_product);
+
+        send(state);
+    }
 
 }

@@ -9,6 +9,8 @@ public class ClientBehaviour extends CyclicBehaviour {
 
     double money = 150000;
 
+    Order order = new Order("book", 12.5, 100);
+
     @Override
     public void action() {
 
@@ -21,23 +23,31 @@ public class ClientBehaviour extends CyclicBehaviour {
             if (msg.getContent().equals("you are good") || msg.getContent().equals("send only two products")) {
                 System.out.println(msg.getContent());
 
-            } else if (msg.getContent().substring(0, 22).equals("Available Products => ")) {
-                AID clientID = msg.getSender();
-                String localID = clientID.getLocalName();
-                System.out.println(localID);
-                System.out.println(msg.getContent());
-                moneyState();
+                if (msg.getContent().equals("you are good")) {
+                    sendOrder();
+                }
 
+            } else if (msg.getContent().substring(0, 9).equals("updated ")) {
+                System.out.println(msg.getContent());
+
+            } else if (msg.getContent().length() >= 22){
+                if(msg.getContent().substring(0, 22).equals("Available Products => ")) {
+                    AID clientID = msg.getSender();
+                    String localID = clientID.getLocalName();
+                    System.out.println(localID);
+                    System.out.println(msg.getContent());
+                    moneyState();
+
+                }
             }
         }
     }
 
     public void moneyState() {
 
-
         String state = "";
 
-        double total = 25000;
+        double total = order.singleProductPrice * order.singleProductCount;
 
         if (total > money)
             state = "bad";
@@ -53,4 +63,15 @@ public class ClientBehaviour extends CyclicBehaviour {
         getAgent().send(moneyState);
     }
 
+    void sendOrder() {
+        String order = "product: " + this.order.productName + ":" + this.order.singleProductPrice + ":" + this.order.singleProductCount;
+
+        ACLMessage moneyState = new ACLMessage(ACLMessage.REQUEST);
+
+        moneyState.addReceiver(new AID("FactoryAgent", AID.ISLOCALNAME));
+
+        moneyState.setContent(order);
+
+        getAgent().send(moneyState);
+    }
 }
