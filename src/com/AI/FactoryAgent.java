@@ -2,6 +2,7 @@ package com.AI;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
@@ -18,14 +19,36 @@ public class FactoryAgent extends Agent {
     protected void setup() {
         System.out.println("Factory is Running ...");
 
-        requestProductList();
-        sendProductList();
-        responseToMoneyState();
+        receiveBehave();
+    }
+
+    void receiveBehave(){
+        addBehaviour(new CyclicBehaviour() {
+            @Override
+            public void action() {
+                ACLMessage msg = receive();
+
+                if (msg != null) {
+
+                    AID clientID = msg.getSender();
+                    String localID = clientID.getLocalName();
+
+                    if(msg.getContent().equals("Request Products")){
+                        System.out.println("new order from: " + localID);
+                        System.out.println(msg.getContent());
+                        sendProductList();
+                    } else if (msg.getContent().equals("bad") || msg.getContent().equals("good")){
+                        receiveMoneyState(msg.getContent());
+                    }
+                }
+            }
+        });
     }
 
     void sendProductList() {
 
-        String msg = "";
+        String msg = "Available Products => ";
+
         for (Product product : this.products) {
             msg += product.productName + ":";
         }
@@ -38,38 +61,32 @@ public class FactoryAgent extends Agent {
         send(acceptance);
     }
 
-    void requestProductList() {
-        addBehaviour(new OneShotBehaviour() {
-            @Override
-            public void action() {
-                ACLMessage clientRequest = receive();
 
-                if (clientRequest != null) {
+    public void receiveMoneyState(String msg) {
+        System.out.println(msg);
 
-                    AID clientID = clientRequest.getSender();
-                    String localID = clientID.getLocalName();
-                    System.out.println("new order from: " + localID);
-                    System.out.println(clientRequest.getContent());
-
-                }
-            }
-        });
-
-
+        responseToState(msg);
     }
 
-    public void responseToMoneyState() {
+    void responseToState(String msg){
+        if(msg.equals("bad")){
 
-        ACLMessage stateMsg = receive();
+            ACLMessage state = new ACLMessage(ACLMessage.REQUEST);
 
+            state.addReceiver(new AID("ClientAgent", AID.ISLOCALNAME));
 
-        if (stateMsg != null) {
+            state.setContent("send only two products");
 
-            AID clientID = stateMsg.getSender();
-            String localID = clientID.getLocalName();
-            System.out.println("state of: " + localID);
-            System.out.println(stateMsg.getContent());
+            send(state);
+        }else if(msg.equals("good")){
 
+            ACLMessage state = new ACLMessage(ACLMessage.REQUEST);
+
+            state.addReceiver(new AID("ClientAgent", AID.ISLOCALNAME));
+
+            state.setContent("you are good");
+
+            send(state);
         }
     }
 

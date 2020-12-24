@@ -7,8 +7,6 @@ import jade.lang.acl.ACLMessage;
 
 public class ClientAgent extends Agent {
 
-    double money = 150000;
-    int clientID = 0;
 
     @Override
     protected void setup() {
@@ -16,11 +14,9 @@ public class ClientAgent extends Agent {
         System.out.println("Client one Sending ...");
 
         firstRequest();
-        receiveProductList();
-        moneyState();
+        addBehaviour(new ClientBehaviour());
 
     }
-
 
     void firstRequest(){
         ACLMessage clientOrder = new ACLMessage(ACLMessage.REQUEST);
@@ -32,42 +28,6 @@ public class ClientAgent extends Agent {
         send(clientOrder);
     }
 
-    public void moneyState() {
 
-        Order[] orders = (Order[]) getArguments();
-
-        String state = "";
-        int productCount = orders[clientID].singleProductCount;
-        double productPrice = orders[clientID].singleProductPrice;
-
-        double total = productCount * productPrice;
-
-        if (total > money)
-            state = "bad";
-
-        ACLMessage moneyState = new ACLMessage(ACLMessage.REQUEST);
-
-        moneyState.addReceiver(new AID("FactoryAgent", AID.ISLOCALNAME));
-
-        moneyState.setContent(state);
-
-        send(moneyState);
-    }
-
-    void receiveProductList() {
-        addBehaviour(new CyclicBehaviour() {
-            @Override
-            public void action() {
-                ACLMessage msg = receive();
-                if (msg != null) {
-                    AID clientID = msg.getSender();
-                    String localID = clientID.getLocalName();
-                    System.out.println("new msg from: " + localID);
-                    System.out.println("Available Products => " + msg.getContent());
-                }
-            }
-
-        });
-    }
 
 }
